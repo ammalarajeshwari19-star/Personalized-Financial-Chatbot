@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finn · Finance Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f0e6;--surface:#fefcf7;--surface2:#ece8de;--border:#ddd8ce;
+  --ink:#1a1612;--ink2:#5c5650;--ink3:#9c9690;
+  --green:#2d6a4f;--green-bg:#d8f3dc;
+  --red:#c1440e;--red-bg:#fde8e0;
+  --gold:#b5851b;--gold-bg:#fdf3d8;
+  --accent:#1a3a5c;--accent-bg:#dce8f5;
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.header{display:flex;align-items:center;justify-content:space-between;padding:13px 24px;background:var(--ink);color:var(--bg);flex-shrink:0;gap:12px}
+.logo{font-family:'DM Serif Display',serif;font-size:25px;color:#f4f0e6}.logo span{color:#7ec8a0}
+.tagline{font-size:11px;color:#9c9690;font-weight:300}
+.header-stats{display:flex;gap:20px}
+.hstat .val{font-size:15px;font-weight:600;color:#f4f0e6;font-family:'DM Mono',monospace}
+.hstat .lbl{font-size:10px;color:#9c9690;text-transform:uppercase;letter-spacing:.1em}
+.hstat .val.pos{color:#7ec8a0}.hstat .val.neg{color:#f4a07a}
+.link-bank-btn{background:rgba(126,200,160,.15);border:1px solid rgba(126,200,160,.4);color:#7ec8a0;padding:7px 14px;border-radius:8px;font-size:12px;font-family:'Outfit',sans-serif;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.link-bank-btn:hover{background:rgba(126,200,160,.25)}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:265px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:16px 13px;display:flex;flex-direction:column;gap:16px}
+.sidebar-section h4{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:var(--ink3);margin-bottom:9px;font-family:'DM Mono',monospace}
+.budget-item{margin-bottom:9px}
+.budget-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.budget-row .cat{color:var(--ink2);font-weight:500}
+.budget-row .amt{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink3)}
+.progress-bar{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.ok{background:#2d6a4f}.warn{background:#b5851b}.over{background:#c1440e}
+.goal-card{background:var(--surface2);border-radius:9px;padding:10px;margin-bottom:7px}
+.goal-name{font-size:12px;font-weight:600;margin-bottom:1px}
+.goal-sub{font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace;margin-bottom:5px}
+.txn{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;margin-bottom:3px;background:var(--surface2)}
+.txn-icon{font-size:14px;flex-shrink:0}
+.txn-info{flex:1;min-width:0}
+.txn-name{font-weight:500;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txn-cat{color:var(--ink3);font-size:10px}
+.txn-amt{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;flex-shrink:0}
+.txn-amt.out{color:var(--red)}.txn-amt.in{color:var(--green)}
+.sync-tag{display:inline-block;font-size:9px;background:var(--accent-bg);color:var(--accent);padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle}
+.account-pill{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;transition:border-color .2s}
+.account-pill:hover{border-color:var(--accent)}
+.account-pill .bank-icon{width:26px;height:26px;border-radius:6px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.account-pill .bank-info{flex:1;min-width:0}
+.account-pill .bank-name{font-size:12px;font-weight:600}
+.account-pill .bank-sub{font-size:10px;color:var(--ink3)}
+.consent-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-active{background:#2d6a4f}.dot-pending{background:#b5851b}.dot-revoked{background:#c1440e}
+.sync-btn{font-size:10px;background:var(--accent-bg);color:var(--accent);border:none;border-radius:4px;padding:3px 7px;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600}
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:13px}
+.msg{display:flex;gap:10px;max-width:680px;animation:msgIn .3s ease both}
+.msg.user{flex-direction:row-reverse;align-self:flex-end}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:2px}
+.avatar.bot{background:var(--ink)}.avatar.usr{background:var(--accent);font-size:11px;color:#fff;font-weight:700}
+.bubble{padding:11px 14px;border-radius:12px;font-size:13px;line-height:1.65;max-width:500px}
+.msg.bot .bubble{background:var(--surface);border:1px solid var(--border);border-top-left-radius:3px;color:var(--ink)}
+.msg.user .bubble{background:var(--accent);color:#fff;border-top-right-radius:3px}
+.bubble strong{font-weight:700}.bubble ul{padding-left:15px;margin-top:4px}.bubble li{margin-bottom:2px}
+.typing{display:flex;gap:4px;align-items:center;padding:12px 14px}
+.typing span{width:6px;height:6px;background:var(--ink3);border-radius:50%;animation:bounce 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.chips{padding:0 24px 9px;display:flex;gap:5px;flex-wrap:wrap;background:var(--surface)}
+.chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 11px;font-size:11px;color:var(--ink2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.chip:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.input-bar{padding:12px 24px 16px;background:var(--surface);border-top:1px solid var(--border);display:flex;gap:9px;align-items:flex-end;flex-shrink:0}
+.input-wrap{flex:1}
+#userInput{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;font-family:'Outfit',sans-serif;color:var(--ink);resize:none;outline:none;min-height:44px;max-height:120px;line-height:1.5;transition:border-color .2s}
+#userInput:focus{border-color:var(--accent)}
+#userInput::placeholder{color:var(--ink3)}
+.send-btn{width:44px;height:44px;background:var(--ink);color:var(--bg);border:none;border-radius:10px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .1s;flex-shrink:0}
+.send-btn:hover{background:#2d2820}.send-btn:active{transform:scale(.95)}.send-btn:disabled{background:var(--surface2);color:var(--ink3);cursor:not-allowed}
+.overlay{position:fixed;inset:0;background:rgba(26,22,18,.6);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:modalIn .3s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes modalIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.modal-header{padding:22px 24px 0;display:flex;align-items:flex-start;justify-content:space-between}
+.modal-title{font-family:'DM Serif Display',serif;font-size:22px}
+.modal-sub{font-size:13px;color:var(--ink3);margin-top:3px}
+.close-btn{width:30px;height:30px;border-radius:8px;background:var(--surface2);border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink2)}
+.modal-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:16px}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3)}
+.field-input{background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;font-size:13px;font-family:'Outfit',sans-serif;color:var(--ink);outline:none;transition:border-color .2s;width:100%}
+.field-input:focus{border-color:var(--accent);background:var(--surface)}
+.field-input::placeholder{color:var(--ink3)}
+select.field-input option{background:var(--surface)}
+.stepper{display:flex;gap:8px;margin-bottom:4px}
+.step{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .3s}
+.step.done{background:var(--green)}.step.active{background:var(--accent)}
+.step-label{font-size:11px;color:var(--ink3);margin-bottom:12px}
+.card-preview{background:linear-gradient(135deg,#1a3a5c 0%,#0d2137 100%);border-radius:12px;padding:18px 20px;color:#fff;position:relative;overflow:hidden;margin-top:4px}
+.card-preview::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05)}
+.card-chip{width:28px;height:20px;background:linear-gradient(135deg,#d4af37,#f5d77e);border-radius:4px;margin-bottom:12px}
+.card-number{font-family:'DM Mono',monospace;font-size:14px;letter-spacing:.2em;margin-bottom:12px;color:rgba(255,255,255,.9)}
+.card-bottom{display:flex;justify-content:space-between;align-items:flex-end}
+.card-holder{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.7)}
+.card-exp{font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,.7)}
+.card-network-logo{font-size:18px;font-weight:800;letter-spacing:-.5px}
+.network-rupay{color:#e8f4fd}.network-visa{color:#f0e8ff}.network-mc{color:#ffecec}
+.security-notice{background:var(--green-bg);border:1px solid rgba(45,106,79,.2);border-radius:9px;padding:10px 13px;display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#1a3d2b;line-height:1.5}
+.consent-box{background:var(--accent-bg);border:1px solid rgba(26,58,92,.2);border-radius:12px;padding:18px;text-align:center}
+.consent-box .consent-icon{font-size:36px;margin-bottom:10px}
+.consent-box h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.consent-box p{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:14px}
+.consent-redirect-btn{display:inline-block;background:var(--accent);color:#fff;padding:10px 24px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .2s}
+.consent-redirect-btn:hover{background:#0d2542}
+.consent-mock-note{font-size:11px;color:var(--ink3);margin-top:10px}
+.success-box{text-align:center;padding:10px 0}
+.success-icon{font-size:48px;margin-bottom:12px}
+.success-box h3{font-size:18px;font-weight:700;margin-bottom:6px}
+.success-box p{font-size:13px;color:var(--ink2);line-height:1.6}
+.syncing-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin:14px 0}
+.syncing-fill{height:100%;background:var(--green);border-radius:2px;animation:syncFill 3s ease forwards}
+@keyframes syncFill{from{width:0}to{width:100%}}
+.submit-btn{width:100%;background:var(--ink);color:var(--bg);border:none;border-radius:10px;padding:13px;font-size:14px;font-family:'Outfit',sans-serif;font-weight:700;cursor:pointer;transition:background .2s;margin-top:4px}
+.submit-btn:hover{background:#2d2820}.submit-btn:disabled{background:var(--surface2);color:var(--ink3);cursor:not-allowed}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--ink2);border-radius:9px;padding:10px 20px;font-size:13px;font-family:'Outfit',sans-serif;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-outline:hover{border-color:var(--ink);color:var(--ink)}
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:13px;z-index:999;animation:msgIn .3s ease}
+.toast.ok{background:var(--green);color:#fff}.toast.err{background:var(--red);color:#fff}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">finn<span>.</span></div>
+    <div class="tagline">Your personal finance assistant</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:20px">
+    <div class="header-stats">
+      <div class="hstat"><div class="val" id="hBalance">₹0</div><div class="lbl">Balance</div></div>
+      <div class="hstat"><div class="val pos" id="hIncome">₹0</div><div class="lbl">Income</div></div>
+      <div class="hstat"><div class="val neg" id="hExpenses">₹0</div><div class="lbl">Spent</div></div>
+    </div>
+    <button class="link-bank-btn" onclick="openModal()">🏦 Link Bank</button>
+  </div>
+</div>
+
+<div id="statusBar" style="padding:5px 24px;font-size:11px;background:#fde8e0;color:#7a1a00;flex-shrink:0">● Checking connection…</div>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <h4>Linked Accounts</h4>
+      <div id="accountsList"><div style="font-size:12px;color:var(--ink3)">No accounts linked yet.</div></div>
+      <button onclick="openModal()" style="width:100%;margin-top:6px;background:var(--surface2);border:1px dashed var(--border);border-radius:8px;padding:7px;font-size:12px;color:var(--ink3);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">+ Link a bank account</button>
+    </div>
+    <div class="sidebar-section">
+      <h4>Budget · March</h4>
+      <div id="budgetList"><div style="font-size:12px;color:var(--ink3)">Loading…</div></div>
+    </div>
+    <div class="sidebar-section">
+      <h4>Goals</h4>
+      <div id="goalsList"><div style="font-size:12px;color:var(--ink3)">Loading…</div></div>
+    </div>
+    <div class="sidebar-section">
+      <h4>Recent Transactions</h4>
+      <div id="txnList"><div style="font-size:12px;color:var(--ink3)">Loading…</div></div>
+    </div>
+  </div>
+
+  <div class="chat-area">
+    <div class="messages" id="messages"></div>
+    <div class="chips">
+      <div class="chip" onclick="sendChip(this)">📊 Analyse my spending</div>
+      <div class="chip" onclick="sendChip(this)">💡 How can I save more?</div>
+      <div class="chip" onclick="sendChip(this)">🎯 Help me set a goal</div>
+      <div class="chip" onclick="sendChip(this)">⚠️ Where am I overspending?</div>
+      <div class="chip" onclick="sendChip(this)">🔄 Sync my bank</div>
+    </div>
+    <div class="input-bar">
+      <div class="input-wrap">
+        <textarea id="userInput" rows="1" placeholder="Ask Finn anything about your finances…"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+<div class="modal" id="modal">
+  <div class="modal-header">
+    <div>
+      <div class="modal-title">Link Your Bank Account</div>
+      <div class="modal-sub">Securely connect via India's Account Aggregator framework</div>
+    </div>
+    <button class="close-btn" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div>
+      <div class="stepper">
+        <div class="step active" id="s1"></div>
+        <div class="step" id="s2"></div>
+        <div class="step" id="s3"></div>
+        <div class="step" id="s4"></div>
+      </div>
+      <div class="step-label" id="stepLabel">Step 1 of 4 — Account Details</div>
+    </div>
+
+    <div id="step1">
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Account Holder Name</label>
+          <input class="field-input" id="holderName" placeholder="As per bank records" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Bank Name</label>
+          <select class="field-input" id="bankName">
+            <option value="">Select bank</option>
+            <option>SBI</option><option>HDFC Bank</option><option>ICICI Bank</option>
+            <option>Axis Bank</option><option>Kotak Mahindra Bank</option><option>Yes Bank</option>
+            <option>Canara Bank</option><option>Bank of Baroda</option><option>Punjab National Bank</option>
+            <option>Union Bank of India</option><option>IndusInd Bank</option>
+            <option>Federal Bank</option><option>IDFC First Bank</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Account Number</label>
+          <input class="field-input" id="accountNumber" placeholder="Enter account number" maxlength="20" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Account Type</label>
+          <select class="field-input" id="accountType">
+            <option value="SAVINGS">Savings</option>
+            <option value="CURRENT">Current</option>
+            <option value="OD">Overdraft</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">IFSC Code</label>
+          <input class="field-input" id="ifscCode" placeholder="e.g. SBIN0001234" maxlength="11" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" />
+        </div>
+        <div class="field-group">
+          <label class="field-label">Branch Name</label>
+          <input class="field-input" id="branchName" placeholder="e.g. Hyderabad Main" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Mobile Number (for AA consent)</label>
+        <input class="field-input" id="mobileAA" placeholder="+91 9876543210" maxlength="15" />
+      </div>
+      <button class="submit-btn" onclick="goStep(2)">Continue →</button>
+    </div>
+
+    <div id="step2" style="display:none">
+      <div class="field-group">
+        <label class="field-label">UPI ID (optional)</label>
+        <input class="field-input" id="upiId" placeholder="yourname@upi or mobile@bank" />
+      </div>
+      <div style="margin:4px 0 8px;font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:8px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span>Debit Card (optional)</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div class="card-preview">
+        <div class="card-chip"></div>
+        <div class="card-number" id="cardDisplay">•••• •••• •••• ••••</div>
+        <div class="card-bottom">
+          <div>
+            <div style="font-size:9px;color:rgba(255,255,255,.5);margin-bottom:2px">CARD HOLDER</div>
+            <div class="card-holder" id="cardHolderDisplay">YOUR NAME</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:9px;color:rgba(255,255,255,.5);margin-bottom:2px">EXPIRES</div>
+            <div class="card-exp" id="cardExpDisplay">MM/YY</div>
+          </div>
+          <div class="card-network-logo network-rupay" id="cardNetworkDisplay">RuPay</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Card Number</label>
+        <input class="field-input" id="cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="formatCardInput(this)" autocomplete="off" />
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Expiry Month</label>
+          <select class="field-input" id="cardMonth" onchange="updateCardPreview()">
+            <option value="">MM</option>
+            <option>01</option><option>02</option><option>03</option><option>04</option>
+            <option>05</option><option>06</option><option>07</option><option>08</option>
+            <option>09</option><option>10</option><option>11</option><option>12</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Expiry Year</label>
+          <select class="field-input" id="cardYear" onchange="updateCardPreview()">
+            <option value="">YYYY</option>
+            <option>2026</option><option>2027</option><option>2028</option>
+            <option>2029</option><option>2030</option><option>2031</option>
+          </select>
+        </div>
+      </div>
+      <div class="security-notice">
+        <span style="font-size:16px;flex-shrink:0">🔒</span>
+        <div><strong>Your card data is safe.</strong> Only last 4 digits and expiry stored. Full number discarded immediately. CVV never requested.</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn-outline" onclick="goStep(1)">← Back</button>
+        <button class="submit-btn" style="flex:1;margin-top:0" onclick="submitLinkAccount()">Link Account &amp; Get Consent →</button>
+      </div>
+    </div>
+
+    <div id="step3" style="display:none">
+      <div class="consent-box">
+        <div class="consent-icon">🏦</div>
+        <h3>Approve Data Access</h3>
+        <p>We've sent a consent request via India's Account Aggregator framework. Click below to open your bank's AA app and approve read-only access.</p>
+        <a id="consentRedirectBtn" href="#" target="_blank" class="consent-redirect-btn" onclick="simulateConsentApproval()">Open Bank's AA App →</a>
+        <div class="consent-mock-note" id="mockNote" style="display:none">
+          🧪 <strong>Demo mode:</strong> Clicking will simulate approval with mock transactions.
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:var(--ink3);line-height:1.6">
+        <strong>What you're approving:</strong> Read-only access to your last 6 months of transactions. No payments can be made. Revoke anytime.
+      </div>
+    </div>
+
+    <div id="step4" style="display:none">
+      <div class="success-box">
+        <div class="success-icon">✅</div>
+        <h3 id="successTitle">Account Linked!</h3>
+        <p id="successMsg">Fetching your transactions from the bank…</p>
+        <div class="syncing-bar"><div class="syncing-fill"></div></div>
+        <p id="syncResult" style="font-size:13px;color:var(--green);font-weight:600;display:none"></p>
+      </div>
+      <button class="submit-btn" onclick="closeModal()" id="doneBtn" style="display:none;margin-top:8px">Done — View My Dashboard</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const API = '/api';
+const UID = 1;
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let linkedAccounts = [];
+let currentConsentHandle = null;
+let currentAccountId = null;
+let isMockMode = false;
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  appendBot("👋 Hey! I'm **Finn**, your AI finance assistant.\n\nLink your bank with **🏦 Link Bank** to auto-import transactions, or ask me about EMI, budgeting, savings or investments!");
+  refreshAll();
+});
+
+// ── BACKEND ───────────────────────────────────────────────────────────────
+async function refreshAll() {
+  try {
+    const accounts = await api('/bank/accounts/' + UID);
+    linkedAccounts = accounts || [];
+    renderAccounts();
+    setOnline(true);
+  } catch(e) {
+    setOnline(false);
+    renderDemoData();
+  }
+}
+
+function setOnline(online) {
+  const bar = document.getElementById('statusBar');
+  if (!bar) return;
+  bar.style.cssText = online
+    ? 'padding:5px 24px;font-size:11px;background:#d8f3dc;color:#1a3d2b;flex-shrink:0'
+    : 'padding:5px 24px;font-size:11px;background:#fde8e0;color:#7a1a00;flex-shrink:0';
+  bar.innerHTML = online
+    ? '● Connected to Finn backend · port 8080'
+    : '● Backend offline — demo mode active &nbsp;|&nbsp; Run: <code style="background:rgba(0,0,0,.1);padding:1px 6px;border-radius:3px">mvn spring-boot:run</code>';
+}
+
+async function api(path, opts) {
+  const r = await fetch(API + path, Object.assign({ headers: {'Content-Type':'application/json'} }, opts || {}));
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function inr(v) { return '₹' + (v||0).toLocaleString('en-IN', {maximumFractionDigits:0}); }
+
+function renderBudget(bs) {
+  const el = document.getElementById('budgetList');
+  if (!bs || !bs.length) { el.innerHTML='<div style="font-size:12px;color:var(--ink3)">No budgets set.</div>'; return; }
+  el.innerHTML = bs.map(function(b) {
+    const p = Math.min(b.percentUsed||0, 100);
+    const cls = (b.percentUsed||0)>=100?'over':(b.percentUsed||0)>=80?'warn':'ok';
+    return '<div class="budget-item"><div class="budget-row"><span class="cat">'+(b.icon||'📦')+' '+b.category+'</span><span class="amt">'+inr(b.spent)+' / '+inr(b.budgeted)+'</span></div><div class="progress-bar"><div class="progress-fill '+cls+'" style="width:'+p+'%"></div></div></div>';
+  }).join('');
+}
+
+function renderGoals(gs) {
+  const el = document.getElementById('goalsList');
+  if (!gs || !gs.length) { el.innerHTML='<div style="font-size:12px;color:var(--ink3)">No goals yet.</div>'; return; }
+  el.innerHTML = gs.map(function(g) {
+    const p = Math.min(g.percentComplete||0,100).toFixed(0);
+    return '<div class="goal-card"><div class="goal-name">'+g.name+'</div><div class="goal-sub">'+inr(g.saved)+' of '+inr(g.target)+' · '+p+'%</div><div class="progress-bar"><div class="progress-fill ok" style="width:'+p+'%"></div></div></div>';
+  }).join('');
+}
+
+function renderTransactions(txns) {
+  const el = document.getElementById('txnList');
+  if (!txns || !txns.length) { el.innerHTML='<div style="font-size:12px;color:var(--ink3)">No transactions yet.</div>'; return; }
+  el.innerHTML = txns.slice(0,10).map(function(t) {
+    const out = t.type==='expense'||t.type==='DEBIT';
+    const tag = (t.source && t.source!=='MANUAL') ? '<span class="sync-tag">auto</span>' : '';
+    return '<div class="txn"><div class="txn-icon">'+(t.categoryIcon||'📦')+'</div><div class="txn-info"><div class="txn-name">'+esc(t.description||'')+tag+'</div><div class="txn-cat">'+(t.category||'Other')+' · '+(t.txnDate||'')+'</div></div><div class="txn-amt '+(out?'out':'in')+'">'+(out?'-':'+')+inr(t.amount)+'</div></div>';
+  }).join('');
+}
+
+function renderAccounts() {
+  const el = document.getElementById('accountsList');
+  if (!linkedAccounts.length) {
+    el.innerHTML='<div style="font-size:12px;color:var(--ink3)">No accounts linked yet.</div>';
+    return;
+  }
+  el.innerHTML = linkedAccounts.map(function(a) {
+    const dotCls = a.consentStatus==='ACTIVE'?'dot-active':a.consentStatus==='REVOKED'?'dot-revoked':'dot-pending';
+    const syncBtn = a.consentStatus==='ACTIVE' ? '<button class="sync-btn" onclick="syncAccount('+a.id+',event)">↻ Sync</button>' : '';
+    return '<div class="account-pill"><div class="bank-icon">🏦</div><div class="bank-info"><div class="bank-name">'+esc(a.bankName||'Bank')+'</div><div class="bank-sub">'+esc(a.maskedAccount||'')+(a.upiId?' · '+esc(a.upiId):'')+'</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px"><div class="consent-dot '+dotCls+'" title="'+(a.consentStatus||'PENDING')+'"></div>'+syncBtn+'</div></div>';
+  }).join('');
+}
+
+async function syncAccount(id, e) {
+  e.stopPropagation();
+  showToast('Syncing transactions…','ok');
+  try {
+    const r = await api('/bank/sync/'+id, {method:'POST'});
+    showToast(r.message,'ok');
+    await refreshAll();
+  } catch(err) {
+    showToast('Sync failed — is the backend running?','err');
+  }
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal()  { document.getElementById('overlay').classList.add('open'); goStep(1); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+function goStep(n) {
+  [1,2,3,4].forEach(function(i) {
+    document.getElementById('step'+i).style.display = i===n?'block':'none';
+    var s = document.getElementById('s'+i);
+    s.classList.remove('active','done');
+    if (i < n) s.classList.add('done');
+    else if (i===n) s.classList.add('active');
+  });
+  var labels = ['','Account Details','UPI & Debit Card','Approve Consent','Syncing Transactions'];
+  document.getElementById('stepLabel').textContent = 'Step '+n+' of 4 — '+labels[n];
+}
+
+function formatCardInput(el) {
+  var v = el.value.replace(/\D/g,'').substring(0,16);
+  el.value = v.replace(/(.{4})/g,'$1 ').trim();
+  updateCardPreview();
+}
+
+function updateCardPreview() {
+  var raw  = document.getElementById('cardNumber').value.replace(/\s/g,'');
+  var name = document.getElementById('holderName').value.trim() || 'YOUR NAME';
+  var mon  = document.getElementById('cardMonth').value || 'MM';
+  var yrEl = document.getElementById('cardYear').value;
+  var yr   = yrEl ? yrEl.slice(2) : 'YY';
+  var display = '•••• •••• •••• ••••';
+  if (raw.length > 0) {
+    display = raw.substring(0,4).padEnd(4,'•') + ' •••• •••• ' + (raw.length>=16?raw.slice(12):'••••');
+  }
+  document.getElementById('cardDisplay').textContent       = display;
+  document.getElementById('cardHolderDisplay').textContent = name.toUpperCase().substring(0,22);
+  document.getElementById('cardExpDisplay').textContent    = mon+'/'+yr;
+  var net = document.getElementById('cardNetworkDisplay');
+  if      (raw.startsWith('4'))                           { net.textContent='VISA';  net.className='card-network-logo network-visa'; }
+  else if (raw.startsWith('5')||raw.startsWith('2'))      { net.textContent='MC';    net.className='card-network-logo network-mc'; }
+  else                                                    { net.textContent='RuPay'; net.className='card-network-logo network-rupay'; }
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.id==='holderName') updateCardPreview();
+});
+
+async function submitLinkAccount() {
+  var payload = {
+    userId:          UID,
+    holderName:      document.getElementById('holderName').value.trim(),
+    bankName:        document.getElementById('bankName').value,
+    accountNumber:   document.getElementById('accountNumber').value.replace(/\s/g,''),
+    accountType:     document.getElementById('accountType').value,
+    ifscCode:        document.getElementById('ifscCode').value.trim(),
+    branchName:      document.getElementById('branchName').value.trim(),
+    mobileForAA:     document.getElementById('mobileAA').value.trim(),
+    upiId:           document.getElementById('upiId').value.trim() || null,
+    cardNumber:      document.getElementById('cardNumber').value.replace(/\s/g,'') || null,
+    cardExpiryMonth: parseInt(document.getElementById('cardMonth').value) || null,
+    cardExpiryYear:  parseInt(document.getElementById('cardYear').value)  || null
+  };
+  if (!payload.holderName || !payload.bankName || !payload.accountNumber || !payload.ifscCode) {
+    showToast('Please fill in all required fields.','err'); return;
+  }
+  goStep(3);
+  try {
+    var r = await api('/bank/link', {method:'POST', body: JSON.stringify(payload)});
+    currentConsentHandle = r.aaConsentHandle;
+    currentAccountId     = r.accountId;
+    isMockMode = !!(r.message && r.message.includes('Demo'));
+    document.getElementById('consentRedirectBtn').href = r.aaRedirectUrl || '#';
+    if (isMockMode) document.getElementById('mockNote').style.display='block';
+  } catch(e) {
+    currentConsentHandle = 'DEMO-'+Math.random().toString(36).substring(2,8).toUpperCase();
+    currentAccountId = 1;
+    isMockMode = true;
+    document.getElementById('mockNote').style.display='block';
+  }
+}
+
+function simulateConsentApproval() {
+  if (!isMockMode) return;
+  setTimeout(function(){ completeConsent(true); }, 1500);
+}
+
+async function completeConsent(approved) {
+  goStep(4);
+  document.getElementById('successTitle').textContent = approved ? 'Consent Approved! 🎉' : 'Consent Rejected';
+  document.getElementById('successMsg').textContent   = approved ? 'Fetching your transactions…' : 'You rejected data access.';
+  if (!approved) { document.getElementById('doneBtn').style.display='block'; return; }
+  setTimeout(async function() {
+    try {
+      var syncResult;
+      if (isMockMode || !currentAccountId) {
+        syncResult = {success:true, transactionsFetched:14, message:'14 new transactions synced (demo data).'};
+      } else {
+        syncResult = await api('/bank/aa-callback?handle='+currentConsentHandle+'&approved=true');
+      }
+      document.getElementById('syncResult').textContent   = '✅ '+syncResult.message;
+      document.getElementById('syncResult').style.display = 'block';
+      document.getElementById('successMsg').textContent   = '';
+      document.getElementById('doneBtn').style.display    = 'block';
+      await refreshAll();
+    } catch(e) {
+      document.getElementById('syncResult').textContent   = '⚠️ Sync failed. Try manually later.';
+      document.getElementById('syncResult').style.display = 'block';
+      document.getElementById('doneBtn').style.display    = 'block';
+    }
+  }, 3200);
+}
+
+// ── CHAT ──────────────────────────────────────────────────────────────────
+async function sendMessage() {
+  var el = document.getElementById('userInput');
+  var t  = el.value.trim(); if (!t) return;
+  el.value = ''; el.style.height='auto';
+  await sendMessageText(t);
+}
+
+function sendChip(el) { sendMessageText(el.textContent.trim()); }
+
+async function sendMessageText(text) {
+  appendUser(text); setBusy(true);
+  var tid = appendTyping();
+  try {
+    var d = await api('/chat', {method:'POST', body: JSON.stringify({userId:UID, message:text})});
+    removeEl(tid);
+    appendBot(d.reply || d.message || 'Got it!');
+  } catch(e) {
+    removeEl(tid);
+    appendBot(localReply(text));
+  } finally {
+    setBusy(false);
+  }
+}
+
+// ── LOCAL REPLIES (when /chat endpoint not available) ─────────────────────
+function localReply(text) {
+  var t = text.toLowerCase();
+
+  // EMI Calculator — detect amount, rate and tenure
+  var amtMatch  = text.match(/(\d[\d,]*(?:\.\d+)?)\s*(?:lakh|lac|l\b|k\b)?/i);
+  var rateMatch = text.match(/(\d+(?:\.\d+)?)\s*%/);
+  var tenMatch  = text.match(/(\d+)\s*(month|mon|yr|year)/i);
+
+  if ((t.includes('emi') || t.includes('loan')) && amtMatch && rateMatch && tenMatch) {
+    var P = parseFloat(amtMatch[1].replace(/,/g,''));
+    if (/lakh|lac/i.test(text))    P *= 100000;
+    else if (/\bk\b/i.test(text))  P *= 1000;
+
+    var annualRate = parseFloat(rateMatch[1]);
+    var n = parseInt(tenMatch[1]);
+    if (/yr|year/i.test(tenMatch[2])) n *= 12;
+
+    var r   = annualRate / 100 / 12;
+    var emi = P * r * Math.pow(1+r,n) / (Math.pow(1+r,n) - 1);
+    var total    = emi * n;
+    var interest = total - P;
+
+    return '**EMI Calculation Result** 💰\n\n' +
+      '- Loan Amount: **₹' + P.toLocaleString('en-IN') + '**\n' +
+      '- Interest Rate: **' + annualRate + '% per annum**\n' +
+      '- Tenure: **' + n + ' months**\n\n' +
+      '**Monthly EMI: ₹' + Math.round(emi).toLocaleString('en-IN') + '**\n\n' +
+      '- Total Payment: ₹' + Math.round(total).toLocaleString('en-IN') + '\n' +
+      '- Total Interest Paid: ₹' + Math.round(interest).toLocaleString('en-IN');
+  }
+
+  if (t.includes('emi') || t.includes('loan'))
+    return '**EMI Calculator** 💰\n\nPlease provide all three:\n- Loan amount (e.g. 5 lakh or 500000)\n- Interest rate (e.g. 8%)\n- Tenure (e.g. 36 months or 3 years)\n\n**Example:** "EMI for 5 lakh at 8% for 36 months"';
+
+  if (t.includes('budget') || t.includes('spend') || t.includes('analy'))
+    return '**50/30/20 Budget Rule** 📊\n\n- **50%** Needs (rent, food, utilities)\n- **30%** Wants (entertainment, shopping)\n- **20%** Savings & investments\n\nFor ₹50,000 salary → Save ₹10,000 · Needs ₹25,000 · Wants ₹15,000';
+
+  if (t.includes('save') || t.includes('saving'))
+    return '**Saving Tips** 💡\n\n- Auto-transfer savings on salary day\n- Cut unused subscriptions\n- Cook at home 3 extra days/week\n- Build 3–6 months emergency fund';
+
+  if (t.includes('invest'))
+    return '**Investment Options in India** 📈\n\n- **PPF** — 7.1% tax-free\n- **ELSS** — market returns + 80C tax benefit\n- **FD** — 6–7% safe returns\n- **SIP** — Start with ₹500/month\n\n₹5,000/month SIP @ 12% for 20 years = **₹49.9 lakhs** 🚀';
+
+  if (t.includes('goal'))
+    return '**Setting a Goal** 🎯\n\n- Define the target amount\n- Set a deadline\n- Auto-transfer monthly\n\nExample: ₹1,50,000 emergency fund in 12 months = **₹12,500/month**';
+
+  if (t.includes('tax') || t.includes('80c'))
+    return '**Tax Saving Options (80C)** 🧾\n\n- **ELSS** — Best returns, 3yr lock-in\n- **PPF** — Safe, 15yr, tax-free returns\n- **NPS** — Extra ₹50,000 deduction under 80CCD\n- **Life Insurance** — Premium qualifies\n- **Home Loan Principal** — Qualifies under 80C\n\nMax 80C limit: **₹1,50,000/year**';
+
+  if (t.includes('sync') || t.includes('bank'))
+    return 'Click **🏦 Link Bank** in the top right to connect your bank. Transactions will be auto-imported and categorised! ✅';
+
+  return 'Hi! I\'m **Finn** 🌿\n\nTry asking:\n- "EMI for 5 lakh at 8% for 36 months"\n- "How to budget ₹50,000 salary"\n- "Best investment options"\n- "Tax saving tips"';
+}
+
+// ── CHAT HELPERS ──────────────────────────────────────────────────────────
+function appendUser(t) {
+  var d=document.createElement('div'); d.className='msg user';
+  d.innerHTML='<div class="avatar usr">You</div><div class="bubble">'+esc(t)+'</div>';
+  msgs().appendChild(d); scroll();
+}
+function appendBot(t) {
+  var d=document.createElement('div'); d.className='msg bot';
+  d.innerHTML='<div class="avatar bot">🌿</div><div class="bubble">'+md(t)+'</div>';
+  msgs().appendChild(d); scroll();
+}
+function appendTyping() {
+  var id='t'+Date.now(), d=document.createElement('div');
+  d.id=id; d.className='msg bot';
+  d.innerHTML='<div class="avatar bot">🌿</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  msgs().appendChild(d); scroll(); return id;
+}
+function removeEl(id) { var e=document.getElementById(id); if(e) e.remove(); }
+function msgs()  { return document.getElementById('messages'); }
+function scroll(){ msgs().scrollTop=msgs().scrollHeight; }
+function setBusy(b){ document.getElementById('sendBtn').disabled=b; }
+
+function md(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/`(.*?)`/g,'<code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-family:monospace;font-size:12px">$1</code>')
+    .replace(/^[-•]\s(.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>[\s\S]*?<\/li>\n?)+/g,function(m){ return '<ul>'+m+'</ul>'; })
+    .replace(/\n/g,'<br>');
+}
+function esc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showToast(msg, type) {
+  var t=document.createElement('div'); t.className='toast '+(type||'ok'); t.textContent=msg;
+  document.body.appendChild(t); setTimeout(function(){ t.remove(); },3500);
+}
+
+// ── DEMO DATA ─────────────────────────────────────────────────────────────
+function renderDemoData() {
+  document.getElementById('hBalance').textContent  = '₹68,500';
+  document.getElementById('hIncome').textContent   = '₹85,000';
+  document.getElementById('hExpenses').textContent = '₹16,500';
+  renderBudget([
+    {icon:'🍔',category:'Food',         spent:3700,  budgeted:6000,  percentUsed:62},
+    {icon:'🚗',category:'Transport',    spent:1850,  budgeted:3000,  percentUsed:62},
+    {icon:'📱',category:'Subscriptions',spent:2298,  budgeted:1000,  percentUsed:230},
+    {icon:'🛍️',category:'Shopping',    spent:2200,  budgeted:4000,  percentUsed:55},
+    {icon:'💡',category:'Utilities',    spent:12000, budgeted:15000, percentUsed:80}
+  ]);
+  renderGoals([
+    {name:'Emergency Fund',  saved:36000, target:150000, percentComplete:24},
+    {name:'Vacation to Goa', saved:13500, target:60000,  percentComplete:22}
+  ]);
+  renderTransactions([
+    {categoryIcon:'💼',description:'Salary Credit',   category:'Salary',        txnDate:'2026-03-01',type:'income', amount:85000,source:'AA_FETCH'},
+    {categoryIcon:'🍔',description:'Swiggy Order',    category:'Food',          txnDate:'2026-03-02',type:'expense',amount:2400, source:'AA_FETCH'},
+    {categoryIcon:'🚗',description:'Ola Cab',          category:'Transport',     txnDate:'2026-03-02',type:'expense',amount:850,  source:'AA_FETCH'},
+    {categoryIcon:'📱',description:'Netflix',          category:'Subscriptions', txnDate:'2026-03-03',type:'expense',amount:799,  source:'AA_FETCH'},
+    {categoryIcon:'🛍️',description:'Amazon Shopping', category:'Shopping',      txnDate:'2026-03-04',type:'expense',amount:2200, source:'AA_FETCH'},
+    {categoryIcon:'💊',description:'Apollo Pharmacy', category:'Health',        txnDate:'2026-03-05',type:'expense',amount:580,  source:'AA_FETCH'}
+  ]);
+}
+</script>
+</body>
+</html>
